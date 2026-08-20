@@ -36,7 +36,7 @@ retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":
 
 # LLM (Groq)
 chatModel = ChatGroq(
-    model="llama-3.1-8b-instant",  # or try "llama-3.1-70b-versatile"
+    model="openai/gpt-oss-20b",
     temperature=0,
 )
 
