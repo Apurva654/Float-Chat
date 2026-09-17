@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FloatChat AI - Portal Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(rgba(4, 12, 24, 0.35), rgba(4, 12, 24, 0.45)), url('/Deepblue.png') no-repeat center center fixed !important;
+            background-size: cover !important;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        .body-overlay {
+            background: transparent;
+        }
+        .glass-panel {
+            background: rgba(10, 25, 42, 0.82);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+        .tab-active {
+            background-color: #0084a5;
+            color: #ffffff;
+        }
+        .tab-inactive {
+            background-color: transparent;
+            color: #94a3b8;
+        }
+        .tab-inactive:hover {
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+<body class="min-h-screen body-overlay flex items-center justify-center p-4">
+
+    <div class="glass-panel w-full max-w-md rounded-3xl p-8 relative overflow-hidden text-white shadow-2xl">
+        <!-- Floating Water Wave Icon -->
+        <div class="flex justify-center mb-4">
+            <div class="w-16 h-16 rounded-2xl bg-cyan-950/80 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-3xl shadow-lg shadow-cyan-950/80">
+                <i class="fa-solid fa-water"></i>
+            </div>
+        </div>
+
+        <!-- Title & Subtitle -->
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-extrabold tracking-tight text-white mb-1">FloatChat AI</h1>
+            <p class="text-xs text-cyan-200/80 font-medium">Autonomous Ocean Intelligence & Telemetry Portal</p>
+        </div>
+
+        <!-- Dynamic Error Alert Banner -->
+        <div id="errorAlert" class="hidden mb-5 p-3.5 rounded-xl bg-rose-950/90 border border-rose-600/50 text-rose-200 text-xs font-semibold flex items-center gap-2 shadow-lg">
+            <i class="fa-solid fa-circle-exclamation text-rose-400 text-sm"></i>
+            <span id="errorMessage">Username taken.</span>
+        </div>
+
+        <!-- Navigation Tabs: Sign In / Register -->
+        <div class="grid grid-cols-2 p-1 bg-slate-950/80 rounded-xl mb-6 border border-slate-800/80">
+            <button type="button" id="tabSignIn" onclick="switchTab('signin')" class="py-2.5 rounded-lg text-xs font-bold transition-all duration-200 tab-active">
+                Sign In
+            </button>
+            <button type="button" id="tabRegister" onclick="switchTab('register')" class="py-2.5 rounded-lg text-xs font-bold transition-all duration-200 tab-inactive">
+                Register
+            </button>
+        </div>
+
+        <!-- Login / Register Form -->
+        <form id="authForm" onsubmit="handleAuth(event)" class="space-y-4">
+            <!-- Username Input -->
+            <div>
+                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Username</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                        <i class="fa-solid fa-user text-xs"></i>
+                    </span>
+                    <input type="text" id="usernameInput" required placeholder="Enter username..." 
+                           class="w-full pl-10 pr-4 py-3 bg-slate-950/90 border border-slate-700/80 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all placeholder-slate-500">
+                </div>
+            </div>
+
+            <!-- Password Input -->
+            <div>
+                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Password</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                        <i class="fa-solid fa-lock text-xs"></i>
+                    </span>
+                    <input type="password" id="passwordInput" required placeholder="••••••••" 
+                           class="w-full pl-10 pr-4 py-3 bg-slate-950/90 border border-slate-700/80 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all placeholder-slate-500">
+                </div>
+            </div>
+
+            <!-- Keep me logged in Checkbox -->
+            <div class="flex items-center justify-between pt-1">
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 font-medium">
+                    <input type="checkbox" id="rememberMe" checked class="w-4 h-4 rounded border-slate-700 text-cyan-600 focus:ring-cyan-400 bg-slate-950">
+                    <span>Keep me logged in</span>
+                </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="submitBtn" class="w-full mt-4 py-3.5 px-4 bg-[#0084a5] hover:bg-[#0096bc] active:bg-[#00728f] text-white font-bold rounded-xl transition-all duration-150 shadow-lg shadow-cyan-950/60 flex items-center justify-center gap-2 text-xs">
+                <span id="btnText">Sign In</span>
+                <i id="btnIcon" class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+        </form>
+    </div>
+
+    <script>
+        let currentMode = 'signin';
+
+        function switchTab(mode) {
+            currentMode = mode;
+            const errorAlert = document.getElementById('errorAlert');
+            errorAlert.classList.add('hidden');
+
+            const tabSignIn = document.getElementById('tabSignIn');
+            const tabRegister = document.getElementById('tabRegister');
+            const btnText = document.getElementById('btnText');
+
+            if (mode === 'signin') {
+                tabSignIn.className = 'py-2.5 rounded-lg text-xs font-bold transition-all duration-200 tab-active';
+                tabRegister.className = 'py-2.5 rounded-lg text-xs font-bold transition-all duration-200 tab-inactive';
+                btnText.textContent = 'Sign In';
+            } else {
+                tabSignIn.className = 'py-2.5 rounded-lg text-xs font-bold transition-all duration-200 tab-inactive';
+                tabRegister.className = 'py-2.5 rounded-lg text-xs font-bold transition-all duration-200 tab-active';
+                btnText.textContent = 'Create Account';
+            }
+        }
+
+        async function handleAuth(event) {
+            event.preventDefault();
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            const errorAlert = document.getElementById('errorAlert');
+            const errorMessage = document.getElementById('errorMessage');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (!username || !password) return;
+
+            errorAlert.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-70');
+
+            const endpoint = currentMode === 'signin' ? '/api/login' : '/api/register';
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    window.location.href = '/';
+                } else {
+                    errorMessage.textContent = data.error || (currentMode === 'signin' ? 'Invalid credentials.' : 'Registration failed.');
+                    errorAlert.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorMessage.textContent = 'Network or server error. Please try again.';
+                errorAlert.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-70');
+            }
+        }
+    </script>
+</body>
+</html>

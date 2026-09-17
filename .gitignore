@@ -205,3 +205,9 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# App local runtime databases & storage
+floatchat_users.db
+chroma_db/
+uploads/
+
