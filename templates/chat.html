@@ -1,82 +1,708 @@
-<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Chatbot</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FloatChat AI - ARGO Multimodal Intelligence Workspace</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(rgba(4, 12, 24, 0.35), rgba(4, 12, 24, 0.45)), url('/Deepblue.png') no-repeat center center fixed !important;
+            background-size: cover !important;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            color: #e2e8f0;
+        }
+        .body-overlay {
+            background: transparent;
+            min-height: 100vh;
+        }
+        .glass-header {
+            background: rgba(8, 21, 36, 0.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+        }
+        .glass-sidebar {
+            background: rgba(6, 18, 32, 0.88);
+            backdrop-filter: blur(16px);
+            border-right: 1px solid rgba(56, 189, 248, 0.12);
+        }
+        .glass-panel {
+            background: rgba(9, 24, 40, 0.88);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.18);
+        }
+        .glass-card {
+            background: rgba(12, 28, 46, 0.94);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+        .tab-btn-active {
+            background-color: #0084a5;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 132, 165, 0.4);
+        }
+        .tab-btn-inactive {
+            background-color: transparent;
+            color: #94a3b8;
+        }
+        .tab-btn-inactive:hover {
+            color: #e2e8f0;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(5, 12, 22, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.3);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(56, 189, 248, 0.5);
+        }
+    </style>
 </head>
+<body class="h-screen body-overlay flex flex-col overflow-hidden">
 
-<body>
-    <div class="container-fluid h-100">
-        <div class="row justify-content-center h-100">        
-            <div class="col-md-8 col-xl-6 chat">
-                <div class="card">
-                    <div class="card-header msg_head">
-                        <div class="d-flex bd-highlight">
-                            <div class="img_cont">
-                                <!-- Bot image in header -->
-                                <img src="https://cdn-icons-png.flaticon.com/512/427/427735.png" class="rounded-circle user_img">
-                                <span class="online_icon"></span>
+    <!-- Top Main Header Bar -->
+    <header class="h-16 glass-header px-4 sm:px-6 flex items-center justify-between z-20 shrink-0">
+        <!-- Brand Logo & Title -->
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-cyan-950 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-lg shadow-md shrink-0">
+                <i class="fa-solid fa-water"></i>
+            </div>
+            <div>
+                <h1 class="text-sm font-extrabold text-white flex items-center gap-2 tracking-tight">
+                    FloatChat AI
+                </h1>
+                <p class="text-[10px] text-cyan-200/70 font-medium">ARGO In-Situ Discovery</p>
+            </div>
+            <button onclick="startNewSession()" class="ml-2 px-3 py-1.5 rounded-lg bg-[#0084a5] hover:bg-[#0096bc] text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5">
+                <i class="fa-solid fa-plus text-[10px]"></i>
+                <span>New</span>
+            </button>
+        </div>
+
+        <!-- Center Workspace Switcher Tabs (Matches Screenshots 2 & 5) -->
+        <div class="flex items-center gap-1 p-1 bg-slate-950/80 rounded-xl border border-slate-800">
+            <button type="button" id="navTabChat" onclick="switchMainTab('chat')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 tab-btn-active">
+                <i class="fa-solid fa-comments"></i>
+                <span>AI Chat Workspace</span>
+            </button>
+            <button type="button" id="navTabGlobe" onclick="switchMainTab('globe')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 tab-btn-inactive">
+                <i class="fa-solid fa-globe"></i>
+                <span>3D Globe Explorer</span>
+            </button>
+        </div>
+
+        <!-- Right Active Telemetry Status -->
+        <div class="hidden md:flex items-center gap-2 text-xs font-medium text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1.5 rounded-full">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="activeStationBadge">Tracked Target: Float 5906001 (Equatorial Indian Ocean)</span>
+        </div>
+    </header>
+
+    <!-- Main Container (Sidebar + Content Workspace) -->
+    <div class="flex-1 flex overflow-hidden">
+
+        <!-- Left Sidebar: ChromaDB Vector History -->
+        <aside class="w-72 glass-sidebar flex flex-col shrink-0">
+            <!-- History Header -->
+            <div class="p-4 border-b border-slate-800/80 flex items-center justify-between">
+                <h2 class="text-xs font-extrabold text-cyan-300 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-database text-cyan-400"></i> CHROMADB HISTORY
+                </h2>
+                <span id="historyCountBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-500/30">
+                    0
+                </span>
+            </div>
+
+            <!-- History Items List -->
+            <div id="historyList" class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+                <div class="text-center py-8 text-xs text-slate-400">Loading saved telemetry sessions...</div>
+            </div>
+
+            <!-- Sidebar Bottom Action Bar -->
+            <div class="p-3 border-t border-slate-800/80 flex items-center justify-between gap-2 bg-slate-950/60">
+                <button onclick="clearHistory()" class="px-2.5 py-1.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 border border-rose-600/30 text-rose-300 text-[11px] font-bold transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-trash text-[10px]"></i>
+                    <span>Clear History</span>
+                </button>
+                <button onclick="toggleTheme()" class="px-2.5 py-1.5 rounded-lg bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/30 text-amber-300 text-[11px] font-bold transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-sun text-[10px]"></i>
+                    <span>Light</span>
+                </button>
+                <!-- User Avatar & Logout -->
+                <div class="flex items-center gap-1.5 pl-2 border-l border-slate-800">
+                    <div class="w-6 h-6 rounded-md bg-indigo-950 border border-indigo-500/40 flex items-center justify-center text-indigo-300 text-[10px] font-bold uppercase">
+                        {{ current_user[0] if current_user else 'A' }}
+                    </div>
+                    <span class="text-xs font-bold text-slate-200 truncate max-w-[60px]">{{ current_user or 'User' }}</span>
+                    <a href="/logout" title="Logout" class="text-slate-400 hover:text-rose-400 text-xs pl-1">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Workspace Panel -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-950/50 relative">
+
+            <!-- =================================================================== -->
+            <!-- VIEW 1: AI CHAT WORKSPACE -->
+            <!-- =================================================================== -->
+            <div id="viewChatWorkspace" class="flex-1 flex flex-col h-full overflow-hidden">
+
+                <!-- Chat Messages Scroll Container -->
+                <div id="chatLog" class="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-6">
+
+                    <!-- Welcome Hero Card (Matches Screenshot 2) -->
+                    <div class="glass-card rounded-2xl p-5 border border-cyan-500/30 max-w-4xl mx-auto shadow-2xl">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-cyan-950 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-xl shrink-0 mt-0.5">
+                                <i class="fa-solid fa-compass"></i>
                             </div>
-                            <div class="user_info">
-                                <span>FloatChat</span>
-                                <p>Ask me anything about ARGO data!</p>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-1">
+                                    <h2 class="text-base font-extrabold text-white">ARGO Multimodal Intelligence Workspace</h2>
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-950 text-cyan-300 border border-cyan-500/30">ChromaDB + SQLite</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/30">EN / HI / MR</span>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-slate-300 leading-relaxed mb-3">
+                                    Ask questions in <strong>English</strong>, <strong>हिन्दी (Hindi)</strong>, or <strong>मराठी (Marathi)</strong> via voice dictation or text queries. In-situ CTD Profiles, Hypoxic OMZ, Thermal Dynamics & Multi-Region Basins.
+                                </p>
+                                
+                                <div class="text-[11px] font-bold text-amber-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-lightbulb"></i> SUGGESTED INQUIRIES:
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    <button onclick="sendQuickPrompt('What is the temperature in the Arabian Sea?')" class="p-2.5 rounded-xl bg-slate-900/90 hover:bg-cyan-950/80 border border-slate-800 hover:border-cyan-500/40 text-left text-xs text-cyan-200 transition-all flex items-center gap-2">
+                                        <i class="fa-solid fa-water text-cyan-400"></i>
+                                        <span class="truncate">What is the temperature in the Arabian Sea?</span>
+                                    </button>
+                                    <button onclick="sendQuickPrompt('What is the salinity at 100 dbar depth?')" class="p-2.5 rounded-xl bg-slate-900/90 hover:bg-cyan-950/80 border border-slate-800 hover:border-cyan-500/40 text-left text-xs text-cyan-200 transition-all flex items-center gap-2">
+                                        <i class="fa-solid fa-location-crosshairs text-sky-400"></i>
+                                        <span class="truncate">What is the salinity at 100 dbar depth?</span>
+                                    </button>
+                                    <button onclick="sendQuickPrompt('What is the status of active floats near the equator?')" class="p-2.5 rounded-xl bg-slate-900/90 hover:bg-cyan-950/80 border border-slate-800 hover:border-cyan-500/40 text-left text-xs text-cyan-200 transition-all flex items-center gap-2">
+                                        <i class="fa-solid fa-compass text-amber-400"></i>
+                                        <span class="truncate">What is the status of active floats near the equator?</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div id="messageFormeight" class="card-body msg_card_body">
-                        
-                    </div>
-                    <div class="card-footer">
-                        <form id="messageArea" class="input-group">
-                            <input type="text" id="text" name="msg" placeholder="Type your message..." autocomplete="off" class="form-control type_msg" required/>
-                            <div class="input-group-append">
-                                <button type="submit" id="send" class="input-group-text send_btn"><i class="fas fa-location-arrow"></i></button>
-                            </div>
-                        </form>
+
+                </div>
+
+                <!-- Quick Queries Bar Above Input -->
+                <div class="px-6 py-2 bg-slate-950/80 border-t border-slate-800/80 flex items-center gap-2 text-xs">
+                    <span class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1 shrink-0">
+                        <i class="fa-solid fa-bolt text-amber-400"></i> QUICK QUERIES:
+                    </span>
+                    <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar py-0.5">
+                        <button onclick="sendQuickPrompt('What is the temperature in the Arabian Sea?')" class="px-3 py-1 rounded-lg bg-slate-900 hover:bg-cyan-950 border border-slate-800 text-slate-300 hover:text-cyan-300 text-xs whitespace-nowrap transition-all">
+                            What is the temperature in the Arabian Sea?
+                        </button>
+                        <button onclick="sendQuickPrompt('What is the salinity at 100 dbar depth?')" class="px-3 py-1 rounded-lg bg-slate-900 hover:bg-cyan-950 border border-slate-800 text-slate-300 hover:text-cyan-300 text-xs whitespace-nowrap transition-all">
+                            What is the salinity at 100 dbar depth?
+                        </button>
+                        <button onclick="sendQuickPrompt('What is the status of active floats near the equator?')" class="px-3 py-1 rounded-lg bg-slate-900 hover:bg-cyan-950 border border-slate-800 text-slate-300 hover:text-cyan-300 text-xs whitespace-nowrap transition-all">
+                            What is the status of active floats near the equator?
+                        </button>
                     </div>
                 </div>
+
+                <!-- Selected File Banner -->
+                <div id="uploadFileBar" class="hidden px-6 py-2 bg-cyan-950 border-t border-cyan-500/40 flex items-center justify-between text-xs text-cyan-200">
+                    <span class="flex items-center gap-2 font-medium">
+                        <i class="fa-solid fa-file-arrow-up text-cyan-400"></i>
+                        Attached File: <strong id="uploadFileName" class="text-white">file.pdf</strong>
+                    </span>
+                    <button onclick="cancelFileUpload()" class="text-rose-400 hover:text-rose-300 font-bold">Remove</button>
+                </div>
+
+                <!-- Bottom Input Form Controls -->
+                <div class="p-4 glass-panel border-t border-slate-800 shrink-0">
+                    <form id="chatForm" onsubmit="submitMessage(event)" class="max-w-5xl mx-auto flex items-center gap-2">
+
+                        <!-- File Upload Paperclip Icon -->
+                        <input type="file" id="fileInput" onchange="handleFileSelected(event)" class="hidden" accept=".pdf,.csv,.json,.txt,.dat,.png,.jpg">
+                        <button type="button" onclick="document.getElementById('fileInput').click()" title="Attach File (PDF, CSV, Image OCR)" 
+                                class="p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-cyan-400 transition-all shrink-0">
+                            <i class="fa-solid fa-paperclip text-sm"></i>
+                        </button>
+
+                        <!-- Language Selector Dropdown -->
+                        <select id="langSelect" class="px-3 py-3 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-200 font-semibold focus:outline-none focus:border-cyan-400 shrink-0">
+                            <option value="en">🌐 English</option>
+                            <option value="hi">हिन्दी (Hindi)</option>
+                            <option value="mr">मराठी (Marathi)</option>
+                        </select>
+
+                        <!-- Speech Dictation Mic Icon -->
+                        <button type="button" id="micBtn" onclick="toggleSpeech()" title="Voice Dictation (EN/HI/MR)" 
+                                class="p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-cyan-400 transition-all shrink-0">
+                            <i class="fa-solid fa-microphone text-sm"></i>
+                        </button>
+
+                        <!-- Input Text Area -->
+                        <div class="flex-1 relative">
+                            <input type="text" id="messageInput" required autocomplete="off" 
+                                   placeholder="What is the temperature in the Arabian Sea? / Ask any ocean question..." 
+                                   class="w-full px-4 py-3 bg-slate-900/90 border border-slate-700/80 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all placeholder-slate-500">
+                        </div>
+
+                        <!-- Execute Send Button (Matches Screenshot 3,4) -->
+                        <button type="submit" id="sendBtn" 
+                                class="px-5 py-3 rounded-xl bg-[#0084a5] hover:bg-[#0096bc] text-white font-bold text-xs shadow-lg shadow-cyan-950/60 flex items-center gap-2 transition-all shrink-0">
+                            <span>Execute</span>
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                        </button>
+                    </form>
+                </div>
             </div>
-        </div>
+
+            <!-- =================================================================== -->
+            <!-- VIEW 2: 3D GLOBE EXPLORER (Matches Screenshots 2 & 5) -->
+            <!-- =================================================================== -->
+            <div id="viewGlobeExplorer" class="flex-1 flex flex-col h-full overflow-hidden hidden p-4 sm:p-6">
+                <div class="glass-card rounded-2xl border border-cyan-500/30 flex-1 flex flex-col overflow-hidden shadow-2xl">
+                    
+                    <!-- Globe Workspace Header -->
+                    <div class="px-6 py-4 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-slate-950/90">
+                        <div>
+                            <h2 class="text-base font-extrabold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-globe text-cyan-400"></i> Global Digital Ocean Globe
+                            </h2>
+                            <p class="text-xs text-slate-400">Hover across ocean stations & major trenches or click to track coordinates</p>
+                        </div>
+                        
+                        <!-- Quick Landmarks Buttons (Matches Screenshot 5) -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-slate-300">Quick Landmarks:</span>
+                            <button onclick="rotateGlobeTo('mariana')" class="px-3 py-1 rounded-lg bg-slate-900 hover:bg-cyan-950 border border-slate-700 text-xs text-cyan-300 font-semibold transition-all">
+                                Mariana Trench
+                            </button>
+                            <button onclick="rotateGlobeTo('arabian')" class="px-3 py-1 rounded-lg bg-slate-900 hover:bg-cyan-950 border border-slate-700 text-xs text-cyan-300 font-semibold transition-all">
+                                Arabian Sea OMZ
+                            </button>
+                            <button onclick="rotateGlobeTo('pacific')" class="px-3 py-1 rounded-lg bg-slate-900 hover:bg-cyan-950 border border-slate-700 text-xs text-cyan-300 font-semibold transition-all">
+                                Pacific Warm Pool
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Interactive 3D Globe Render Container -->
+                    <div id="fullGlobeRenderArea" class="flex-1 min-h-[380px] w-full relative bg-slate-950">
+                        <div id="globeLoadingSpinner" class="absolute inset-0 flex items-center justify-center text-cyan-400 text-xs font-bold gap-2 bg-slate-950/90">
+                            <i class="fa-solid fa-circle-notch fa-spin text-base"></i> Rendering 3D Digital Ocean Globe...
+                        </div>
+                    </div>
+
+                    <!-- Bottom Globe Station/Landmark Info Bar (Matches Screenshot 2) -->
+                    <div id="globeBottomInfoBar" class="p-3 bg-slate-950/95 border-t border-cyan-500/30 flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-cyan-950 border border-cyan-400/40 flex items-center justify-center text-cyan-400 font-bold shrink-0">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <div>
+                                <span id="globeFloatTitle" class="font-extrabold text-white block text-xs">Float 5906001 (Equatorial Indian Ocean)</span>
+                                <span id="globeFloatSub" class="text-[11px] text-cyan-300 font-mono">Basin: Equatorial Indian Ocean | Lat: 1.5°N, Lon: 65.4°E</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <div class="hidden md:block text-right">
+                                <span class="text-[10px] text-slate-400 uppercase font-bold block">SUGGESTED QUESTION</span>
+                                <span id="globeSuggestedQuestion" class="text-xs text-slate-200 italic">"What is the average temperature and salinity at 100 dbar near 1.5°N, 65.4°E"</span>
+                            </div>
+                            <button onclick="queryGlobeSelectionInChat()" class="px-4 py-2 rounded-xl bg-[#0084a5] hover:bg-[#0096bc] text-white text-xs font-bold transition-all shadow-md flex items-center gap-2">
+                                <span>Query in Chat</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
     </div>
-    
+
     <script>
-        $(document).ready(function() {
-            $("#messageArea").on("submit", function(event) {
-                const date = new Date();
-                const hour = date.getHours();
-                const minute = date.getMinutes();
-                const str_time = hour + ":" + (minute < 10 ? "0" + minute : minute);
-                var rawText = $("#text").val();
+        let selectedFile = null;
+        let recognition = null;
+        let isListening = false;
+        let currentTab = 'chat';
+        let currentGlobeQueryText = "What is the average temperature and salinity at 100 dbar near 1.5°N, 65.4°E";
 
-                // User message bubble
-                var userHtml = '<div class="d-flex justify-content-end mb-4"><div class="msg_cotainer_send">' + rawText + '<span class="msg_time_send">'+ str_time + '</span></div><div class="img_cont_msg"><img src="https://i.ibb.co/d5b84Xw/Untitled-design.png" class="rounded-circle user_img_msg"></div></div>';
-                
-                $("#text").val("");
-                $("#messageFormeight").append(userHtml);
+        const landmarkCoords = {
+            'mariana': { name: "Mariana Trench Deep Abyssal Array", lat: 11.3, lon: 142.2, sub: "Deep Trench Array | Lat: 11.3°N, Lon: 142.2°E", q: "What is the hydrographic profile at Mariana Trench (11.3°N, 142.2°E)?" },
+            'arabian': { name: "Arabian Sea Hypoxic OMZ Core", lat: 16.0, lon: 64.0, sub: "Oxygen Minimum Zone | Lat: 16.0°N, Lon: 64.0°E", q: "Show me the dissolved oxygen (DOXY) profile at 200 dbar in Arabian Sea" },
+            'pacific': { name: "Pacific Warm Pool Thermal Array", lat: 2.0, lon: 150.0, sub: "Equatorial Pacific | Lat: 2.0°N, Lon: 150.0°E", q: "What is the SST and salinity in the Pacific Warm Pool?" },
+            'equator': { name: "Float 5906001 (Equatorial Indian Ocean)", lat: 1.5, lon: 65.4, sub: "Equatorial Indian Ocean | Lat: 1.5°N, Lon: 65.4°E", q: "What is the average temperature and salinity at 100 dbar near 1.5°N, 65.4°E" },
+            'bay': { name: "Float 2902781 (Bay of Bengal)", lat: 15.2, lon: 88.5, sub: "Bay of Bengal Basin | Lat: 15.2°N, Lon: 88.5°E", q: "What is the temperature and salinity in Bay of Bengal?" }
+        };
 
-                // Send message to Flask backend
-                $.ajax({
-                    data: {
-                        msg: rawText,    
-                    },
-                    type: "POST",
-                    url: "/get",
-                }).done(function(data) {
-                    // Bot message bubble with DeepBlue image
-                    var botHtml = '<div class="d-flex justify-content-start mb-4"><div class="img_cont_msg"><img src="https://cdn-icons-png.flaticon.com/512/427/427735.png" class="rounded-circle user_img_msg"></div><div class="msg_cotainer">' + data + '<span class="msg_time">' + str_time + '</span></div></div>';
-                    $("#messageFormeight").append($.parseHTML(botHtml));
-                });
-                event.preventDefault();
-            });
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHistory();
+            initSpeech();
         });
+
+        // Switch Top Header Tabs: Chat vs 3D Globe
+        function switchMainTab(tab) {
+            currentTab = tab;
+            const navChat = document.getElementById('navTabChat');
+            const navGlobe = document.getElementById('navTabGlobe');
+            const viewChat = document.getElementById('viewChatWorkspace');
+            const viewGlobe = document.getElementById('viewGlobeExplorer');
+
+            if (tab === 'chat') {
+                navChat.className = 'px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 tab-btn-active';
+                navGlobe.className = 'px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 tab-btn-inactive';
+                viewChat.classList.remove('hidden');
+                viewGlobe.classList.add('hidden');
+            } else {
+                navChat.className = 'px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 tab-btn-inactive';
+                navGlobe.className = 'px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 tab-btn-active';
+                viewChat.classList.add('hidden');
+                viewGlobe.classList.remove('hidden');
+                loadFull3DGlobe();
+            }
+        }
+
+        // Render 3D Digital Ocean Globe & Attach Event Listeners
+        async function loadFull3DGlobe() {
+            const spinner = document.getElementById('globeLoadingSpinner');
+            spinner.classList.remove('hidden');
+            try {
+                const res = await fetch('/api/globe/full');
+                const data = await res.json();
+                spinner.classList.add('hidden');
+
+                const container = document.getElementById('fullGlobeRenderArea');
+                Plotly.newPlot(container, data.chart.data, data.chart.layout, { responsive: true, displayModeBar: true }).then(() => {
+                    Plotly.relayout(container, { autosize: true });
+                });
+
+                // Attach click listener on Globe points (Yellow station circles & White stars)
+                container.on('plotly_click', function(evtData) {
+                    if (evtData && evtData.points && evtData.points.length > 0) {
+                        const pt = evtData.points[0];
+                        const lat = pt.lat;
+                        const lon = pt.lon;
+                        const txt = pt.text || "Selected Location";
+                        
+                        // Rotate globe to clicked coordinates
+                        Plotly.relayout(container, {
+                            'geo.projection.rotation.lat': lat,
+                            'geo.projection.rotation.lon': -lon,
+                            'geo.projection.rotation.roll': 0
+                        });
+
+                        // Update Bottom Info Bar
+                        document.getElementById('globeFloatTitle').textContent = txt.split('<br>')[0] || "Target Ocean Location";
+                        document.getElementById('globeFloatSub').textContent = `Coords: ${lat.toFixed(1)}°N, ${lon.toFixed(1)}°E`;
+                        currentGlobeQueryText = `What is the average temperature and salinity at 100 dbar near ${lat.toFixed(1)}°N, ${lon.toFixed(1)}°E`;
+                        document.getElementById('globeSuggestedQuestion').textContent = `"${currentGlobeQueryText}"`;
+                    }
+                });
+
+            } catch (e) {
+                spinner.innerHTML = `<span class="text-rose-400">Failed to render 3D Globe.</span>`;
+            }
+        }
+
+        // Rotate 3D Globe to Landmark Coordinates (Mariana Trench, Arabian Sea OMZ, Pacific Warm Pool)
+        function rotateGlobeTo(key) {
+            const lm = landmarkCoords[key];
+            if (!lm) return;
+
+            document.getElementById('globeFloatTitle').textContent = lm.name;
+            document.getElementById('globeFloatSub').textContent = lm.sub;
+            currentGlobeQueryText = lm.q;
+            document.getElementById('globeSuggestedQuestion').textContent = `"${lm.q}"`;
+
+            const container = document.getElementById('fullGlobeRenderArea');
+            Plotly.relayout(container, {
+                'geo.projection.rotation.lat': lm.lat,
+                'geo.projection.rotation.lon': -lm.lon,
+                'geo.projection.rotation.roll': 0
+            });
+        }
+
+        // Click "Query in Chat ➔" button on Globe Bottom Bar
+        function queryGlobeSelectionInChat() {
+            switchMainTab('chat');
+            document.getElementById('messageInput').value = currentGlobeQueryText;
+            submitMessage(new Event('submit'));
+        }
+
+        function startNewSession() {
+            document.getElementById('chatLog').innerHTML = `
+                <div class="glass-card rounded-2xl p-5 border border-cyan-500/30 max-w-4xl mx-auto shadow-2xl">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-cyan-950 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-xl shrink-0 mt-0.5">
+                            <i class="fa-solid fa-compass"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h2 class="text-base font-extrabold text-white mb-1">New Telemetry Session Started</h2>
+                            <p class="text-xs text-slate-300">Ask any oceanographic question or attach dataset files.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Load ChromaDB Session History
+        async function loadHistory() {
+            const container = document.getElementById('historyList');
+            const badge = document.getElementById('historyCountBadge');
+            try {
+                const res = await fetch('/history');
+                const data = await res.json();
+                if (!data.history || data.history.length === 0) {
+                    container.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">No telemetry history saved.</div>`;
+                    badge.textContent = '0';
+                    return;
+                }
+                badge.textContent = data.history.length;
+                container.innerHTML = data.history.map(item => `
+                    <div class="p-2.5 rounded-xl bg-slate-900/80 hover:bg-cyan-950/60 border border-slate-800 hover:border-cyan-500/40 transition-all group relative cursor-pointer" onclick="replaySession('${escapeHtml(item.prompt)}')">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-regular fa-comment text-cyan-400 text-xs shrink-0"></i>
+                            <p class="text-xs text-slate-200 font-medium truncate pr-4">${escapeHtml(item.prompt)}</p>
+                        </div>
+                        <button onclick="deleteSession(event, '${item.id}')" title="Delete Session" class="absolute right-2 top-2 text-slate-400 hover:text-rose-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+            } catch (e) {
+                container.innerHTML = `<div class="text-center py-4 text-xs text-rose-400">Failed to load history.</div>`;
+            }
+        }
+
+        async function clearHistory() {
+            try {
+                const res = await fetch('/history');
+                const data = await res.json();
+                if (data.history) {
+                    for (let item of data.history) {
+                        await fetch(`/history/${item.id}`, { method: 'DELETE' });
+                    }
+                }
+                loadHistory();
+            } catch (e) {}
+        }
+
+        async function deleteSession(event, entryId) {
+            event.stopPropagation();
+            try {
+                await fetch(`/history/${entryId}`, { method: 'DELETE' });
+                loadHistory();
+            } catch (e) {}
+        }
+
+        function replaySession(promptText) {
+            switchMainTab('chat');
+            document.getElementById('messageInput').value = promptText;
+            submitMessage(new Event('submit'));
+        }
+
+        function sendQuickPrompt(text) {
+            switchMainTab('chat');
+            document.getElementById('messageInput').value = text;
+            submitMessage(new Event('submit'));
+        }
+
+        function handleFileSelected(event) {
+            if (event.target.files && event.target.files[0]) {
+                selectedFile = event.target.files[0];
+                document.getElementById('uploadFileName').textContent = selectedFile.name;
+                document.getElementById('uploadFileBar').classList.remove('hidden');
+            }
+        }
+
+        function cancelFileUpload() {
+            selectedFile = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadFileBar').classList.add('hidden');
+        }
+
+        // Send Message
+        async function submitMessage(event) {
+            event.preventDefault();
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            const chatLog = document.getElementById('chatLog');
+
+            if (!message && !selectedFile) return;
+
+            // Render User Query Bubble
+            const userTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const userMsgHtml = `
+                <div class="flex justify-end gap-3 max-w-3xl ml-auto">
+                    <div class="bg-[#0084a5] text-white rounded-2xl rounded-tr-none px-4 py-3 shadow-md max-w-xl text-xs font-medium">
+                        <p>${escapeHtml(message || selectedFile.name)}</p>
+                        <span class="text-[10px] text-cyan-100/70 font-mono block text-right mt-1">${userTime}</span>
+                    </div>
+                </div>
+            `;
+            chatLog.insertAdjacentHTML('beforeend', userMsgHtml);
+            messageInput.value = '';
+
+            // Render Assistant Spinner
+            const tempId = 'msg-' + Date.now();
+            const thinkingHtml = `
+                <div id="${tempId}" class="flex gap-3 max-w-4xl">
+                    <div class="w-8 h-8 rounded-xl bg-cyan-950 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-xs shrink-0">
+                        <i class="fa-solid fa-water"></i>
+                    </div>
+                    <div class="glass-card rounded-2xl rounded-tl-none p-4 text-slate-300 text-xs flex items-center gap-2">
+                        <i class="fa-solid fa-circle-notch fa-spin text-cyan-400 text-sm"></i>
+                        <span>Processing in-situ ARGO hydrographic telemetry...</span>
+                    </div>
+                </div>
+            `;
+            chatLog.insertAdjacentHTML('beforeend', thinkingHtml);
+            chatLog.scrollTop = chatLog.scrollHeight;
+
+            try {
+                let responseData;
+                if (selectedFile) {
+                    const formData = new FormData();
+                    formData.append('file', selectedFile);
+                    cancelFileUpload();
+                    const res = await fetch('/upload', { method: 'POST', body: formData });
+                    responseData = await res.json();
+                } else {
+                    const res = await fetch('/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: message })
+                    });
+                    responseData = await res.json();
+                }
+
+                // Render Bot Response Panel
+                const chartDivId = 'plotly-' + Date.now();
+                const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                const botReplyHtml = `
+                    <div class="flex gap-3 max-w-4xl">
+                        <div class="w-8 h-8 rounded-xl bg-cyan-950 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-xs shrink-0">
+                            <i class="fa-solid fa-water"></i>
+                        </div>
+                        <div class="glass-card rounded-2xl rounded-tl-none p-5 text-slate-200 text-xs w-full shadow-2xl">
+                            <div>${responseData.reply}</div>
+                            
+                            ${responseData.chart ? `
+                                <div class="mt-4 pt-3 border-t border-slate-800">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-cube text-cyan-400"></i> 3D Telemetry Visualizer
+                                        </span>
+                                        <div class="flex items-center gap-1">
+                                            <button onclick="downloadChart('${chartDivId}', 'png')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-300">
+                                                <i class="fa-solid fa-download"></i> PNG
+                                            </button>
+                                            <button onclick="downloadChart('${chartDivId}', 'svg')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-300">
+                                                <i class="fa-solid fa-file-image"></i> SVG
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="${chartDivId}" style="height: 380px; width: 100%; min-height: 380px;" class="w-full rounded-xl overflow-hidden border border-slate-800 bg-[#0a1929]"></div>
+                                </div>
+                            ` : ''}
+
+                            <span class="text-[10px] text-slate-400 font-mono block mt-3">${botTime}</span>
+                        </div>
+                    </div>
+                `;
+                document.getElementById(tempId).outerHTML = botReplyHtml;
+
+                if (responseData.chart) {
+                    try {
+                        const chartData = typeof responseData.chart === 'string' ? JSON.parse(responseData.chart) : responseData.chart;
+                        Plotly.newPlot(chartDivId, chartData.data, chartData.layout, { responsive: true, displayModeBar: true }).then(() => {
+                            setTimeout(() => Plotly.relayout(chartDivId, { autosize: true }), 100);
+                            setTimeout(() => Plotly.Plots.resize(chartDivId), 200);
+                        });
+                    } catch (err) {}
+                }
+
+                loadHistory();
+
+            } catch (e) {
+                document.getElementById(tempId).outerHTML = `
+                    <div class="flex gap-3 max-w-4xl">
+                        <div class="w-8 h-8 rounded-xl bg-rose-950 border border-rose-500/40 flex items-center justify-center text-rose-400 text-xs shrink-0">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div class="bg-rose-950/70 border border-rose-600/40 rounded-2xl rounded-tl-none p-4 text-rose-200 text-xs font-semibold">
+                            Error communicating with telemetry server. Please try again.
+                        </div>
+                    </div>
+                `;
+            }
+
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        function downloadChart(chartDivId, format) {
+            Plotly.downloadImage(chartDivId, { format: format, width: 1000, height: 600, filename: 'floatchat_telemetry_3d' });
+        }
+
+        function initSpeech() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('messageInput').value = transcript;
+                    toggleSpeech();
+                };
+                recognition.onerror = () => toggleSpeech();
+                recognition.onend = () => toggleSpeech(false);
+            }
+        }
+
+        function toggleSpeech(forceState) {
+            if (!recognition) return;
+            const micBtn = document.getElementById('micBtn');
+            isListening = forceState !== undefined ? forceState : !isListening;
+
+            if (isListening) {
+                const lang = document.getElementById('langSelect').value;
+                recognition.lang = lang === 'hi' ? 'hi-IN' : (lang === 'mr' ? 'mr-IN' : 'en-US');
+                recognition.start();
+                micBtn.classList.add('bg-rose-950', 'text-rose-400', 'animate-pulse', 'border-rose-500');
+            } else {
+                recognition.stop();
+                micBtn.classList.remove('bg-rose-950', 'text-rose-400', 'animate-pulse', 'border-rose-500');
+            }
+        }
+
+        function toggleTheme() {
+            // Theme toggle helper
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
     </script>
-    
 </body>
 </html>
