@@ -345,4 +345,5 @@ def upload_file():
     return jsonify({"reply": f"<div class='p-2 mb-2 bg-cyan-950 rounded text-cyan-300 text-xs'>File: {filename}</div>" + resp, "chart": chart, "share_id": share_uuid})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=False, use_reloader=False)
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
